@@ -6,6 +6,7 @@
 
 void setup() {
     Serial.begin(9600);
+    Serial.write(0); // Notify the hub that the connection is ready.
 }
 
 void loop() {
