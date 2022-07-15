@@ -10,38 +10,40 @@ void setup() {
 }
 
 void loop() {
-    if(Serial.available() >= 2) { // The smallest command is 2 bytes
+    if(Serial.available() >= 3) { // All commands are three bytes
         byte command= Serial.read();
-        byte param1= Serial.read(); 
+        byte pin= Serial.read(); 
 
-        if(command==CMD_PIN_MODE) { // Init pin
-            while(Serial.available() == 0); // Wait for the third command byte
-            byte param2= Serial.read();
-            pinMode(param1, param2);
+        if(command==CMD_PIN_MODE) {
+            byte mode= Serial.read();
+            pinMode(pin, mode);
             return;
         }
 
-        if(command==CMD_DIGITAL_WRITE) { // Digital write
-            while(Serial.available() == 0); // Wait for the third command byte
-            byte param2= Serial.read();
-            digitalWrite(param1, param2);
+        if(command==CMD_DIGITAL_WRITE) {
+            byte state= Serial.read();
+            digitalWrite(pin, state);
             return;
         }
 
-        if(command==CMD_ANALOG_WRITE) { // Analog write
-            while(Serial.available() == 0); // Wait for the third command byte
-            byte param2= Serial.read();
-            analogWrite(param1, param2);
+        if(command==CMD_ANALOG_WRITE) {
+            byte value= Serial.read();
+            analogWrite(pin, value);
             return;
         }
 
-        if(command==CMD_DIGITAL_READ) { // Digital read
-            Serial.write(digitalRead(param1));
+        if(command==CMD_DIGITAL_READ) {
+            byte id= Serial.read(); // ID helps the hub match the command and its response.
+            Serial.write(id);
+            Serial.write(digitalRead(pin));
+            byte value= Serial.read();
             return;
         }
 
         if(command==CMD_ANALOG_READ) {
-            Serial.write(analogRead(param1));
+            byte id= Serial.read();
+            Serial.write(id);
+            Serial.write(analogRead(pin));
             return;
         }
     }
