@@ -3,19 +3,49 @@
 #define CMD_DIGITAL_READ 2
 #define CMD_ANALOG_WRITE 3
 #define CMD_ANALOG_READ 4
+#define CMD_LISTEN_PIN 5
 #define CMD_DHT11 50
 #define CMD_DHT21 51
 #define CMD_DHT22 52
+#define EVT_START 0
+#define EVT_PIN_CHANGE 1
+
+#ifdef __AVR_ATmega328P__
+#define PIN_COUNT 22
+#endif
+#ifdef __AVR_ATmega2560__
+#define PIN_COUNT 70
+#endif
+#ifndef PIN_COUNT
+#error "Only Arduino UNO and MEGA2560 are supported."
+#endif
 
 #include <dht.h>
 dht DHT;
 
+bool listenedPins[PIN_COUNT];
+int lastPinState[PIN_COUNT];
+
 void setup() {
     Serial.begin(9600);
-    Serial.write(0); // Notify the hub that the connection is ready.
+    Serial.write(EVT_START); // Notify the hub that the connection is ready.
+    Serial.println("arduino:serial 0.0.1"); // The hub uses this to make sure that the versions are compatible
 }
 
 void loop() {
+    for (int i=0; i<PIN_COUNT; i++) {
+        if (listenedPins[i]) {
+            int currentState = digitalRead(i);
+            if (lastPinState[i] != currentState) {
+                Serial.write(EVT_PIN_CHANGE);
+                Serial.write(i);
+                Serial.write(currentState);
+                Serial.println();
+                lastPinState[i] = currentState;
+            }
+        }
+    }
+  
     if(Serial.available() >= 3) { // All commands are three bytes
         byte command= Serial.read();
         byte pin= Serial.read(); 
@@ -51,6 +81,13 @@ void loop() {
             Serial.write(id);
             Serial.write(analogRead(pin));
             Serial.println();
+            return;
+        }
+
+        if(command==CMD_LISTEN_PIN) {
+            bool listening= Serial.read() == 1;
+            listenedPins[pin] = listening;
+            lastPinState[pin] = digitalRead(pin);
             return;
         }
 
