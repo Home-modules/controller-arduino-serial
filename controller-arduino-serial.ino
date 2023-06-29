@@ -24,7 +24,6 @@
 #include <DHT.h>
 #include <DHT_U.h>
 
-DHT_Unified dht(3, DHT11);
 
 bool listenedPins[PIN_COUNT];
 int lastPinState[PIN_COUNT];
@@ -33,8 +32,6 @@ void setup() {
     Serial.begin(9600);
     Serial.write(EVT_START); // Notify the hub that the connection is ready.
     Serial.println("arduino:serial 0.0.1"); // The hub uses this to make sure that the versions are compatible
-    dht.begin(); // Start the DHT
-
 }
 
 void loop() {
@@ -54,6 +51,8 @@ void loop() {
     if(Serial.available() >= 3) { // All commands are three bytes
         byte command= Serial.read();
         byte pin= Serial.read(); 
+        
+
 
         if(command==CMD_PIN_MODE) {
             byte mode= Serial.read();
@@ -97,6 +96,8 @@ void loop() {
         }
 
         if(command==CMD_DHT11) {
+             DHT_Unified dht(pin, DHT11);
+             dht.begin();
             byte id= Serial.read();
             Serial.write(id);
             sensors_event_t event;
@@ -110,6 +111,8 @@ void loop() {
         }
 
         if(command==CMD_DHT21) {
+          DHT_Unified dht(pin, DHT21);
+          dht.begin();
             byte id= Serial.read();
             Serial.write(id);
             sensors_event_t event;
@@ -122,6 +125,8 @@ void loop() {
             Serial.println();
         }
         if(command==CMD_DHT22) {
+          DHT_Unified dht(pin, DHT22);
+          dht.begin();
             byte id= Serial.read();
             Serial.write(id);
             sensors_event_t event;
