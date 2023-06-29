@@ -20,8 +20,10 @@
 #error "Only Arduino UNO and MEGA2560 are supported."
 #endif
 
-#include <dht.h>
-dht DHT;
+#include <Adafruit_Sensor.h>
+#include <DHT.h>
+#include <DHT_U.h>
+
 
 bool listenedPins[PIN_COUNT];
 int lastPinState[PIN_COUNT];
@@ -49,6 +51,8 @@ void loop() {
     if(Serial.available() >= 3) { // All commands are three bytes
         byte command= Serial.read();
         byte pin= Serial.read(); 
+        
+
 
         if(command==CMD_PIN_MODE) {
             byte mode= Serial.read();
@@ -92,31 +96,44 @@ void loop() {
         }
 
         if(command==CMD_DHT11) {
+             DHT_Unified dht(pin, DHT11);
+             dht.begin();
             byte id= Serial.read();
             Serial.write(id);
-            DHT.read11(pin);
-            float temp = DHT.temperature; // Convert to float (32-bit), because on Arduino Due a double is 64-bit.
-            float humi = DHT.humidity;
+            sensors_event_t event;
+            dht.temperature().getEvent(&event);
+            dht.humidity().getEvent(&event);
+            float temp = event.temperature;
+            float humi = event.relative_humidity;
             Serial.write((byte *) &temp, 4);
             Serial.write((byte *) &humi, 4);
             Serial.println();
         }
+
         if(command==CMD_DHT21) {
+          DHT_Unified dht(pin, DHT21);
+          dht.begin();
             byte id= Serial.read();
             Serial.write(id);
-            DHT.read21(pin);
-            float temp = DHT.temperature; // Convert to float (32-bit), because on Arduino Due a double is 64-bit.
-            float humi = DHT.humidity;
+            sensors_event_t event;
+            dht.temperature().getEvent(&event);
+            dht.humidity().getEvent(&event);
+            float temp = event.temperature;
+            float humi = event.relative_humidity;
             Serial.write((byte *) &temp, 4);
             Serial.write((byte *) &humi, 4);
             Serial.println();
         }
         if(command==CMD_DHT22) {
+          DHT_Unified dht(pin, DHT22);
+          dht.begin();
             byte id= Serial.read();
             Serial.write(id);
-            DHT.read22(pin);
-            float temp = DHT.temperature; // Convert to float (32-bit), because on Arduino Due a double is 64-bit.
-            float humi = DHT.humidity;
+            sensors_event_t event;
+            dht.temperature().getEvent(&event);
+            dht.humidity().getEvent(&event);
+            float temp = event.temperature;
+            float humi = event.relative_humidity;
             Serial.write((byte *) &temp, 4);
             Serial.write((byte *) &humi, 4);
             Serial.println();
